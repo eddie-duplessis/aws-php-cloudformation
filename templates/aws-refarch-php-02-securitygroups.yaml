@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates VPC security groups
+Description: Reference Architecture to host PHP Site on AWS - Creates VPC security groups
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -90,7 +90,7 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
       VpcId:
-        !Ref Vpc       
+        !Ref Vpc
 
   WebSecurityGroup:
     Type: AWS::EC2::SecurityGroup

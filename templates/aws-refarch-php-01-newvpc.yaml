@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates New VPC
+Description: Reference Architecture to host PHP Site on AWS - Creates New VPC
 
 Conditions:
 
@@ -242,7 +242,7 @@ Resources:
         - Key: Network
           Value: Public
       VpcId: !Ref Vpc
-     
+
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachInternetGateway
@@ -360,7 +360,7 @@ Resources:
                 Resource: '*'
 
 Outputs:
-  
+
   Vpc:
     Value: !Ref Vpc
   VpcCidr:

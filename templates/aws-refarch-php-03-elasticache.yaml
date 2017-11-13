@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates ElastiCache cache cluster
+Description: Reference Architecture to host PHP Site on AWS - Creates ElastiCache cache cluster
 
 Metadata:
 
@@ -110,15 +110,15 @@ Resources:
         ]
       Tags:
         - Key: Name
-          Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+          Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
       VpcSecurityGroupIds:
-      - !Ref ElastiCacheSecurityGroup       
-  ElastiCacheSubnetGroup: 
+      - !Ref ElastiCacheSecurityGroup
+  ElastiCacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
-    Properties: 
+    Properties:
       CacheSubnetGroupName: !Join [ '', [ !Ref ElastiCacheClusterName, SubnetGroup ] ]
-      Description: ElastiCache Subnet Group for WordPress
-      SubnetIds: 
+      Description: ElastiCache Subnet Group for Application
+      SubnetIds:
         !If [
           MoreThan2AZ,
           [ !Ref DataSubnet0, !Ref DataSubnet1, !Ref DataSubnet2 ],

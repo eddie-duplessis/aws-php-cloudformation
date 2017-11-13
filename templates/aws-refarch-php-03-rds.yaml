@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates RDS Aurora database cluster
+Description: Reference Architecture to host PHP Site on AWS - Creates RDS Aurora database cluster
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -45,7 +45,7 @@ Parameters:
       - db.r3.xlarge
       - db.r3.2xlarge
       - db.r3.4xlarge
-      - db.r3.8xlarge    
+      - db.r3.8xlarge
     ConstraintDescription: Must be a valid RDS instance class.
     Default: db.t2.medium
     Description: The Amazon RDS database instance class.
@@ -110,7 +110,7 @@ Resources:
       Port: 3306
       Tags:
         - Key: Name
-          Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+          Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
       VpcSecurityGroupIds:
       - !Ref DatabaseSecurityGroup
   DatabaseInstance0:
@@ -125,7 +125,7 @@ Resources:
       Engine: aurora
       Tags:
         - Key: Name
-          Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+          Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
   DatabaseInstance1:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
@@ -138,11 +138,11 @@ Resources:
       Engine: aurora
       Tags:
         - Key: Name
-          Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+          Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
   DataSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: RDS Database Subnet Group for WordPress
+      DBSubnetGroupDescription: RDS Database Subnet Group for Application
       SubnetIds:
         !If [
           MoreThan2AZ,
@@ -151,7 +151,7 @@ Resources:
         ]
       Tags:
         - Key: Name
-          Value: !Join [ '', [ 'WordPress / ', !Ref 'AWS::StackName' ] ]
+          Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
 
 Outputs:
   DatabaseCluster:
