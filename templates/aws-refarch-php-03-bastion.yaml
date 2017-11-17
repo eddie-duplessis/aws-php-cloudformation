@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates bastion (desired:0; min:0; max:1) Auto Scaling group
+Description: Reference Architecture to host PHP Site on AWS - Creates bastion (desired:0; min:0; max:1) Auto Scaling group
 
 Metadata:
 
@@ -66,7 +66,7 @@ Mappings:
     ap-northeast-2:
       AMI: ami-d24e97bc
     ap-southeast-1:
-      AMI: 	ami-e8da418b
+      AMI: ami-e8da418b
     ap-southeast-2:
       AMI: ami-49b3aa2a
     ca-central-1:

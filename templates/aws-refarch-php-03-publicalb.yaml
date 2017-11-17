@@ -10,6 +10,7 @@ Metadata:
     - Label:
         default: ALB Parameters
       Parameters:
+        - PublicAlbName
         - Vpc
         - PublicAlbAcmCertificate
         - PublicAlbSecurityGroup
@@ -17,6 +18,8 @@ Metadata:
         - PublicSubnet1
         - PublicSubnet2
     ParameterLabels:
+      PublicAlbName:
+        default: ALB Name
       Vpc:
         default: Vpc Id
       PublicAlbAcmCertificate:
@@ -31,7 +34,9 @@ Metadata:
         default: Public Subnet for AZ 2
 
 Parameters:
-
+  PublicAlbName:
+    Description: 'The application gateway name'
+    Type: String
   PublicAlbAcmCertificate:
     AllowedPattern: ^$|(arn:aws:acm:)([a-z0-9/:-])*([a-z0-9])$
     Description: '[ Optional ] The AWS Certification Manager certificate ARN for the ALB certificate - this certificate should be created in the region you wish to run the ALB and must reference the domain name you use below.'
@@ -117,7 +122,7 @@ Resources:
       HealthCheckIntervalSeconds: 30
       HealthCheckPath: /
       HealthCheckTimeoutSeconds: 5
-      Name: 'ApplicationPublicAlb'
+      Name: !Ref PublicAlbName
       Port: 80
       Protocol: HTTP
       Tags:

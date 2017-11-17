@@ -31,26 +31,26 @@ Metadata:
         # - WPAdminPassword
         # - WPAdminEmail
         # - WPLocale
-    - Label:
-        default: Database Parameters
-      Parameters:
-        - DatabaseClusterEndpointAddress
-        - DatabaseName
-        - DatabaseMasterUsername
-        - DatabaseMasterPassword
+    # - Label:
+    #     default: Database Parameters
+    #   Parameters:
+    #     - DatabaseClusterEndpointAddress
+    #     - DatabaseName
+    #     - DatabaseMasterUsername
+    #     - DatabaseMasterPassword
     - Label:
         default: File System Parameters
       Parameters:
         - ElasticFileSystem
     ParameterLabels:
-      DatabaseClusterEndpointAddress:
-        default: DB Cluster Endpoint Address
-      DatabaseMasterUsername:
-        default: DB Master Username
-      DatabaseMasterPassword:
-        default: DB Master Password
-      DatabaseName:
-        default: DB Name
+      # DatabaseClusterEndpointAddress:
+      #   default: DB Cluster Endpoint Address
+      # DatabaseMasterUsername:
+      #   default: DB Master Username
+      # DatabaseMasterPassword:
+      #   default: DB Master Password
+      # DatabaseName:
+      #   default: DB Name
       ElasticFileSystem:
         default: EFS File System
       KeyName:
@@ -92,28 +92,28 @@ Metadata:
 
 Parameters:
 
-  DatabaseClusterEndpointAddress:
-    Description: The RDS cluster endpoint address.
-    Type: String
-  DatabaseMasterUsername:
-    AllowedPattern: ^([a-zA-Z0-9]*)$
-    Description: The Amazon RDS master username.
-    ConstraintDescription: Must contain only alphanumeric characters and be at least 8 characters.
-    MaxLength: 16
-    MinLength: 1
-    Type: String
-  DatabaseMasterPassword:
-    AllowedPattern: ^([a-z0-9A-Z`~!#$%^&*()_+,\\-])*$
-    ConstraintDescription: Must be letters (upper or lower), numbers, and these special characters '_'`~!#$%^&*()_+,-
-    Description: The Amazon RDS master password.
-    MaxLength: 41
-    MinLength: 8
-    NoEcho: true
-    Type: String
-  DatabaseName:
-    AllowedPattern: ^([a-zA-Z0-9]*)$
-    Description: The Amazon RDS master database name.
-    Type: String
+  # DatabaseClusterEndpointAddress:
+  #   Description: The RDS cluster endpoint address.
+  #   Type: String
+  # DatabaseMasterUsername:
+  #   AllowedPattern: ^([a-zA-Z0-9]*)$
+  #   Description: The Amazon RDS master username.
+  #   ConstraintDescription: Must contain only alphanumeric characters and be at least 8 characters.
+  #   MaxLength: 16
+  #   MinLength: 1
+  #   Type: String
+  # DatabaseMasterPassword:
+  #   AllowedPattern: ^([a-z0-9A-Z`~!#$%^&*()_+,\\-])*$
+  #   ConstraintDescription: Must be letters (upper or lower), numbers, and these special characters '_'`~!#$%^&*()_+,-
+  #   Description: The Amazon RDS master password.
+  #   MaxLength: 41
+  #   MinLength: 8
+  #   NoEcho: true
+  #   Type: String
+  # DatabaseName:
+  #   AllowedPattern: ^([a-zA-Z0-9]*)$
+  #   Description: The Amazon RDS master database name.
+  #   Type: String
   ElasticFileSystem:
     AllowedPattern: ^(fs-)([a-z0-9]{8})$
     Description: The Amazon EFS file system id.
@@ -242,7 +242,7 @@ Mappings:
     ap-northeast-2:
       AMI: ami-d24e97bc
     ap-southeast-1:
-      AMI: 	ami-e8da418b
+      AMI: ami-e8da418b
     ap-southeast-2:
       AMI: ami-49b3aa2a
     ca-central-1:
@@ -282,6 +282,7 @@ Resources:
           Principal:
             Service:
             - ec2.amazonaws.com
+            - ssm.amazonaws.com
           Action:
           - sts:AssumeRole
       Path: /
@@ -303,7 +304,7 @@ Resources:
     Properties:
       Cooldown: 60
       HealthCheckGracePeriod: 120
-      HealthCheckType: ELB
+      HealthCheckType: EC2
       LaunchConfigurationName: !Ref WebLaunchConfiguration
       MaxSize: !Ref WebAsgMax
       MinSize: !Ref WebAsgMin
@@ -325,95 +326,133 @@ Resources:
         Timeout: PT5M
   WebLaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
-    Metadata:
-      AWS::CloudFormation::Init:
-        configSets:
-          deploy_webserver:
-            - install_webserver
-            - build_cacheclient
-            - build_opcache
-            # - build_wordpress
-            # - install_cacheclient
-            # - install_wordpress
-            # - install_opcache
-            # - start_webserver
-        install_webserver:
-          packages:
-            apt:
-              awslogs: []
-              httpd24: []
-              mysql56: []
-              php70: []
-              php70-mysqlnd: []
-          files:
-            /tmp/create_site_conf.sh:
-              content:
-                !Join [
-                  "",[
-                    "#!/bin/bash -xe\n",
-                    "if [ ! -f /etc/httpd/conf.d/", !Ref AppDirectory, ".conf ]; then\n",
-                    "   touch /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "   echo 'ServerName 127.0.0.1:80' >> /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "   echo 'DocumentRoot /var/www/application/", !Ref AppDirectory, "' >> /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "   echo '<Directory /var/www/application/", !Ref AppDirectory, ">' >> /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "   echo '  Options Indexes FollowSymLinks' >> /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "   echo '  AllowOverride All' >> /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "   echo '  Require all granted' >> /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "   echo '</Directory>' >> /etc/httpd/conf.d/", !Ref AppDirectory, ".conf\n",
-                    "fi\n"
-                  ]
-                ]
-              mode: 000500
-              owner: root
-              group: root
-          commands:
-            create_site_conf:
-              command: ./create_site_conf.sh
-              cwd: /tmp
-              ignoreErrors: false
-        build_cacheclient:
-          # packages:
-          #   yum:
-          #     gcc-c++: []
-          files:
-            /tmp/install_cacheclient.sh:
-              content:
-                !Sub |
-                  #!/bin/bash -xe
-                  wget -P /tmp/ https://s3.amazonaws.com/aws-refarch/wordpress/latest/bits/AmazonElastiCacheClusterClient-2.0.1-PHP70-64bit.tar.gz
-                  tar -xf '/tmp/AmazonElastiCacheClusterClient-2.0.1-PHP70-64bit.tar.gz'
-                  cp '/tmp/artifact/amazon-elasticache-cluster-client.so' /usr/lib64/php/7.0/modules/
-                  if [ ! -f /etc/php-7.0.d/50-memcached.ini ]; then
-                      touch /etc/php-7.0.d/50-memcached.ini
-                  fi
-                  sed -i '3i extension=/usr/lib64/php/7.0/modules/amazon-elasticache-cluster-client.so;' /etc/php-7.0.d/50-memcached.ini
-                  sed -i '3i extension=igbinary.so;' /etc/php-7.0.d/50-memcached.ini
-              mode: 000500
-              owner: root
-              group: root
-        build_opcache:
-          packages:
-            yum:
-              php70-opcache: []
-          files:
-            /tmp/install_opcache.sh:
-              content:
-                !Sub |
-                  #!/bin/bash -xe
-                  # create hidden opcache directory locally & change owner to apache
-                  if [ ! -d /var/www/.opcache ]; then
-                      mkdir -p /var/www/.opcache
-                  fi
-                  # enable opcache in /etc/php-7.0.d/10-opcache.ini
-                  sed -i 's/;opcache.file_cache=.*/opcache.file_cache=\/var\/www\/.opcache/' /etc/php-7.0.d/10-opcache.ini
-                  sed -i 's/opcache.memory_consumption=.*/opcache.memory_consumption=512/' /etc/php-7.0.d/10-opcache.ini
-                  # download opcache-instance.php to verify opcache status
-                  # if [ ! -f /var/www/wordpress/${AppDirectory}/opcache-instanceid.php ]; then
-                  #     wget -P /var/www/wordpress/${AppDirectory}/ https://s3.amazonaws.com/aws-refarch/wordpress/latest/bits/opcache-instanceid.php
-                  # fi
-              mode: 000500
-              owner: root
-              group: root
+    # Metadata:
+    #   AWS::CloudFormation::Init:
+        # configSets:
+        #   deploy_webserver:
+        #     - install_webserver
+        #     - build_cacheclient
+        #     - build_opcache
+        #     - install_managed
+        #     - build_wordpress
+        #     - install_cacheclient
+        #     - install_wordpress
+        #     - install_opcache
+        #     - start_webserver
+        # install_managed:
+        #   files:
+        #     /tmp/install_managed.sh:
+        #       content:
+        #         !Join [
+        #           "",[
+        #             "#!/bin/bash -xe\n",
+        #             "curl 'https://s3.amazonaws.com/aws-cli/awscli-bundle.zip' -o 'awscli-bundle.zip'\n",
+        #             "unzip awscli-bundle.zip\n",
+        #             "/usr/bin/python3 awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws\n",
+        #             "curl 'https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb' -o 'amazon-ssm-agent.deb'\n",
+        #             "dpkg -i amazon-ssm-agent.deb\n",
+        #             "systemctl enable amazon-ssm-agent\n",
+        #             "DD_API_KEY=$(/usr/local/aws ssm get-parameters --names MonitoringDataDogKey --region ${AWS::Region} | jq  -r '.Parameters[].Value')\n",
+        #             "bash -c '$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)'"
+        #           ]
+        #         ]
+        #       mode: 000500
+        #       owner: root
+        #       group: root
+        #   commands:
+        #     create_site_conf:
+        #       command: ./install_managed.sh
+        #       cwd: /tmp
+        #       ignoreErrors: false
+        # install_webserver:
+        #   packages:
+        #     apt:
+        #       # awslogs: []
+        #       apache2: []
+        #       mysql-client: []
+        #       php-fpm: []
+        #       php7.0-common: []
+        #       php7.0-cli: []
+        #       php7.0-mysql: []
+        #       php7.0-dev: []
+        #       php7.0-fpm: []
+        #       libpcre3-dev: []
+        #       php7.0-gd: []
+        #       php7.0-curl: []
+        #       php7.0-imap: []
+        #       php7.0-json: []
+        #       php7.0-xml: []
+        #       php7.0-mbstring: []
+        #       php-sqlite3: []
+        #       php-apcu: []
+        #       php7.0-mysql: []
+        #   files:
+        #     /tmp/create_site_conf.sh:
+        #       content:
+        #         !Join [
+        #           "",[
+        #             "#!/bin/bash -xe\n",
+        #             "if [ ! -f /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf ]; then\n",
+        #             "   touch /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo 'ServerName 127.0.0.1:80' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo 'DocumentRoot /var/www/application/", !Ref AppDirectory, "' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo '<Directory /var/www/application/", !Ref AppDirectory, ">' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo '  Options Indexes FollowSymLinks' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo '  AllowOverride All' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo '  Require all granted' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo '</Directory>' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "   echo 'ProxyPassMatch ^/(.*\\.php(/.*)?)$ \"unix:/run/php/php7.0-fpm.sock|fcgi://localhost/var/www/application/", !Ref AppDirectory, "\">' ' >> /etc/apache2/sites-enabled/", !Ref AppDirectory, ".conf\n",
+        #             "fi\n"
+        #           ]
+        #         ]
+        #       mode: 000500
+        #       owner: root
+        #       group: root
+        #   commands:
+        #     create_site_conf:
+        #       command: ./create_site_conf.sh
+        #       cwd: /tmp
+        #       ignoreErrors: false
+        # build_cacheclient:
+        #   files:
+        #     /tmp/install_cacheclient.sh:
+        #       content:
+        #         !Sub |
+        #           #!/bin/bash -xe
+        #           wget -P /tmp/ https://s3.amazonaws.com/aws-refarch/wordpress/latest/bits/AmazonElastiCacheClusterClient-2.0.1-PHP70-64bit.tar.gz
+        #           tar -xf '/tmp/AmazonElastiCacheClusterClient-2.0.1-PHP70-64bit.tar.gz'
+        #           cp '/tmp/artifact/amazon-elasticache-cluster-client.so' /usr/lib64/php/7.0/modules/
+        #           if [ ! -f /etc/php/7.0/fpm/conf.d/50-memcached.ini ]; then
+        #               touch /etc/php/7.0/fpm/conf.d/50-memcached.ini
+        #           fi
+        #           sed -i '3i extension=/usr/lib64/php/7.0/modules/amazon-elasticache-cluster-client.so;' /etc/php/7.0/fpm/conf.d/50-memcached.ini
+        #           sed -i '3i extension=igbinary.so;' /etc/php/7.0/fpm/conf.d/50-memcached.ini
+        #       mode: 000500
+        #       owner: root
+        #       group: root
+        # build_opcache:
+        #   packages:
+        #     apt:
+        #       php7.0-opcache: []
+        #   files:
+        #     /tmp/install_opcache.sh:
+        #       content:
+        #         !Sub |
+        #           #!/bin/bash -xe
+        #           # create hidden opcache directory locally & change owner to apache
+        #           if [ ! -d /var/www/.opcache ]; then
+        #               mkdir -p /var/www/.opcache
+        #           fi
+        #           # enable opcache in /etc/php-7.0.d/10-opcache.ini
+        #           sed -i 's/;opcache.file_cache=.*/opcache.file_cache=\/var\/www\/.opcache/' /etc/php-7.0.d/10-opcache.ini
+        #           sed -i 's/opcache.memory_consumption=.*/opcache.memory_consumption=512/' /etc/php-7.0.d/10-opcache.ini
+        #           # download opcache-instance.php to verify opcache status
+        #           if [ ! -f /var/www/application/${AppDirectory}/opcache-instanceid.php ]; then
+        #               wget -P /var/www/application/${AppDirectory}/ https://s3.amazonaws.com/aws-refarch/wordpress/latest/bits/opcache-instanceid.php
+        #           fi
+        #       mode: 000500
+        #       owner: root
+        #       group: root
         # build_wordpress:
         #   files:
         #     /tmp/install_wordpress.sh:
@@ -436,7 +475,7 @@ Resources:
         #             "   # install wordpress if not installed\n",
         #             "   # use public alb host name if wp domain name was empty\n",
         #             "   if ! $(wp core is-installed --allow-root); then\n",
-        #             "       wp core download --locale='", !Ref WPLocale, "' --allow-root\n",  
+        #             "       wp core download --locale='", !Ref WPLocale, "' --allow-root\n",
         #             "       wp core config --dbname='", !Ref DatabaseName, "' --dbuser='", !Ref DatabaseMasterUsername, "' --dbpass='", !Ref DatabaseMasterPassword, "' --dbhost='", !Ref DatabaseClusterEndpointAddress, "' --dbprefix=wp_ --allow-root\n",
         #             "       wp core install --url=", !If [ NoAppDomainName, !Ref PublicAlbHostname, !Join [ "", [ "'http://www.", !Ref AppDomainName, "'" ] ] ], " --title='", !Ref WPTitle, "' --admin_user='", !Ref WPAdminUsername, "' --admin_password='", !Ref WPAdminPassword, "' --admin_email='", !Ref WPAdminEmail, "' --skip-email --allow-root\n",
         #             "       sed -i \"/$table_prefix = 'wp_';/ a \\define('WP_HOME', 'http://' . \\$_SERVER['HTTP_HOST']); \" /var/www/wordpress/", !Ref WPDirectory, "/wp-config.php\n",
@@ -444,7 +483,7 @@ Resources:
         #             "       # enable HTTPS in wp-config.php if ACM Public SSL Certificate parameter was not empty\n",
         #                     !If [ NoSslCertificate, !Join [ '', [ "       sed -i \"/$table_prefix = 'wp_';/ a \\# No ACM Public SSL Certificate \" /var/www/wordpress/", !Ref WPDirectory, "/wp-config.php\n" ] ] , !Join [ '', [ "       sed -i \"/$table_prefix = 'wp_';/ a \\$_SERVER['HTTPS'] = 'on';\" /var/www/wordpress/", !Ref WPDirectory, "/wp-config.php\n" ] ] ],
         #             "\n",
-        #             "       # set permissions of wordpress site directories\n", 
+        #             "       # set permissions of wordpress site directories\n",
         #             "       chown -R apache:apache /var/www/wordpress/", !Ref WPDirectory, "\n",
         #             "       chmod u+wrx /var/www/wordpress/", !Ref WPDirectory, "/wp-content/*\n",
         #             "       if [ ! -f /var/www/wordpress/", !Ref WPDirectory, "/opcache-instanceid.php ]; then\n",
@@ -499,13 +538,13 @@ Resources:
         "Fn::Base64":
           !Sub |
             #!/bin/bash -xe
-            yum update -y
-            mkdir -p /var/www/wordpress
-            mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/wordpress
-            /opt/aws/bin/cfn-init --configsets deploy_webserver --verbose --stack ${AWS::StackName} --resource WebLaunchConfiguration --region ${AWS::Region}
-            /opt/aws/bin/cfn-signal --exit-code $? --stack ${AWS::StackName} --resource WebAutoScalingGroup --region ${AWS::Region}
+            apt-get update -y
+            apt-get upgrade -y
+            mkdir -p /var/www/application
+            mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/application/
 
-Outputs:
 
-  Opcachestatus:
-    Value: !Join [ '', [ !Ref PublicAlbHostname, '/opcache-instanceid.php' ] ]
+# Outputs:
+
+#   Opcachestatus:
+#     Value: !Join [ '', [ !Ref PublicAlbHostname, '/opcache-instanceid.php' ] ]
