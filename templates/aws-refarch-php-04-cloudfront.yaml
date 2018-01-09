@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates CloudFront distribution (if selected)
+Description: Reference Architecture to host PHP Site on AWS - Creates CloudFront distribution (if selected)
 
 Metadata:
 
@@ -11,28 +11,28 @@ Metadata:
         default: AWS Parameters
       Parameters:
         - CloudFrontAcmCertificate
-        - WPDomainName
+        - AppDomainName
         - PublicAlbDnsName
     ParameterLabels:
       CloudFrontAcmCertificate:
         default: CloudFront Certificate ARN
       PublicAlbDnsName:
         default: Public ALB DNS Name
-      WPDomainName:
-        default: Domain name of the WordPress site
+      AppDomainName:
+        default: Domain name of the site
 
 Parameters:
 
   CloudFrontAcmCertificate:
     AllowedPattern: ^$|(arn:aws:acm:)([a-z0-9/:-])*([a-z0-9])$
-    Description: '[ Optional ] The AWS Certification Manager certificate ARN for the CloudFront distribution certificate - this certificate should be created in the us-east-1 (N. Virginia) region and must reference the WordPress domain name you use below.'
+    Description: '[ Optional ] The AWS Certification Manager certificate ARN for the CloudFront distribution certificate - this certificate should be created in the us-east-1 (N. Virginia) region and must reference the domain name you use below.'
     Type: String
   PublicAlbDnsName:
     Description: The public application load balancer dns name.
     Type: String
-  WPDomainName:
+  AppDomainName:
     AllowedPattern: ^$|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$
-    Description: '[ Optional ] The main domain name of the WordPress site (e.g. example.com).'
+    Description: '[ Optional ] The main domain name of the site (e.g. example.com).'
     Type: String
 
 Conditions:
@@ -41,10 +41,10 @@ Conditions:
     !Not [ !Equals [ '', !Ref CloudFrontAcmCertificate ] ]
   NoSslCertificate:
     !Equals [ '', !Ref CloudFrontAcmCertificate ]
-  WPDomainName:
-    !Not [ !Equals [ '', !Ref WPDomainName ] ]  
-  NoWPDomainName:
-    !Equals [ '', !Ref WPDomainName ]
+  AppDomainName:
+    !Not [ !Equals [ '', !Ref AppDomainName ] ]
+  NoAppDomainName:
+    !Equals [ '', !Ref AppDomainName ]
 
 Resources:
 
@@ -54,7 +54,7 @@ Resources:
     Properties:
       DistributionConfig:
         Aliases:
-        - !If [ WPDomainName, !Join [ '', [ '*.', !Ref WPDomainName ] ], !Ref 'AWS::NoValue' ]
+        - !If [ AppDomainName, !Join [ '', [ '*.', !Ref AppDomainName ] ], !Ref 'AWS::NoValue' ]
         CacheBehaviors:
         - PathPattern: wp-includes/*
           AllowedMethods:
@@ -129,7 +129,7 @@ Resources:
     Properties:
       DistributionConfig:
         Aliases:
-        - !If [ WPDomainName, !Join [ '', [ '*.', !Ref WPDomainName ] ], !Ref 'AWS::NoValue' ]
+        - !If [ AppDomainName, !Join [ '', [ '*.', !Ref AppDomainName ] ], !Ref 'AWS::NoValue' ]
         CacheBehaviors:
         - PathPattern: wp-includes/*
           AllowedMethods:

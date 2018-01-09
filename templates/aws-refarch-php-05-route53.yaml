@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host WordPress on AWS - Creates Route 53 record set (if selected)
+Description: Reference Architecture to host PHP Site on AWS - Creates Route 53 record set (if selected)
 
 Metadata:
 
@@ -10,7 +10,7 @@ Metadata:
     - Label:
         default: Route 53 Parameters
       Parameters:
-        - WPDomainName
+        - AppDomainName
         - DnsEndpoint
         - DnsHostId
     ParameterLabels:
@@ -18,7 +18,7 @@ Metadata:
         default: DNS Endpoint
       DnsHostId:
         default: DNS Host Id
-      WPDomainName:
+      AppDomainName:
         default: Site Domain
 
 Parameters:
@@ -31,9 +31,9 @@ Parameters:
     AllowedPattern: ^[A-Z0-9]{14}$
     Description: The DNS host zone id - 'Z2FDTNDATAQYW2' if using CloudFront else Public ELB host zone id.
     Type: String
-  WPDomainName:
+  AppDomainName:
     AllowedPattern: ^(?!http)(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$
-    Description: The main domain name of the WordPress site (e.g. example.com).
+    Description: The main domain name of the site (e.g. example.com).
     Type: String
 
 Resources:
@@ -41,9 +41,9 @@ Resources:
   RecordSet:
     Type: AWS::Route53::RecordSetGroup
     Properties:
-      HostedZoneName: !Join ['', [!Ref WPDomainName, '.']]
+      HostedZoneName: !Join ['', [!Ref AppDomainName, '.']]
       RecordSets:
-      - Name: !Join ['', ['www.', !Ref WPDomainName, '.']]
+      - Name: !Join ['', ['www.', !Ref AppDomainName, '.']]
         Type: A
         AliasTarget:
           DNSName: !Ref DnsEndpoint
