@@ -115,7 +115,7 @@ Resources:
       IamInstanceProfile: !Ref BastionInstanceProfile
       ImageId: !FindInMap [ RegionMap, !Ref 'AWS::Region', AMI ]
       InstanceMonitoring: true
-      InstanceType: t2.large
+      InstanceType: t2.small
       KeyName: !Ref KeyName
       SecurityGroups:
         - !Ref BastionSecurityGroup
@@ -135,9 +135,12 @@ Resources:
           Principal:
             Service:
             - ec2.amazonaws.com
+            - ssm.amazonaws.com
           Action:
           - sts:AssumeRole
       Path: '/'
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
       Policies:
       - PolicyName: logs
         PolicyDocument:

@@ -359,6 +359,21 @@ Resources:
                 Effect: Allow
                 Resource: '*'
 
+  S3EndPoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      RouteTableIds:
+        - !Ref PublicRouteTable
+        - !Ref NatRouteTable0
+        - !Ref NatRouteTable1
+        - !Ref NatRouteTable2
+      ServiceName: !Join
+        - ''
+        - - com.amazonaws.
+          - !Ref 'AWS::Region'
+          - .s3
+      VpcId: !Ref Vpc
+
 Outputs:
 
   Vpc:
