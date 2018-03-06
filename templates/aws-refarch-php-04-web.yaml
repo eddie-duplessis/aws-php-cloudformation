@@ -10,6 +10,7 @@ Metadata:
     - Label:
         default: Web Parameters
       Parameters:
+        - AMI
         - KeyName
         - WebInstanceType
         - WebAsgMax
@@ -21,36 +22,13 @@ Metadata:
         - PublicAlbTargetGroupArn
         - PublicAlbHostname
         - SslCertificate
-    # - Label:
-    #     default: Application Parameters
-    #   Parameters:
-        # - WPTitle
-        # - AppDomainName
-        # - AppDirectory
-        # - WPAdminUsername
-        # - WPAdminPassword
-        # - WPAdminEmail
-        # - WPLocale
-    # - Label:
-    #     default: Database Parameters
-    #   Parameters:
-    #     - DatabaseClusterEndpointAddress
-    #     - DatabaseName
-    #     - DatabaseMasterUsername
-    #     - DatabaseMasterPassword
     - Label:
         default: File System Parameters
       Parameters:
         - ElasticFileSystem
     ParameterLabels:
-      # DatabaseClusterEndpointAddress:
-      #   default: DB Cluster Endpoint Address
-      # DatabaseMasterUsername:
-      #   default: DB Master Username
-      # DatabaseMasterPassword:
-      #   default: DB Master Password
-      # DatabaseName:
-      #   default: DB Name
+      AMI:
+        default: Aws Image Id
       ElasticFileSystem:
         default: EFS File System
       KeyName:
@@ -75,45 +53,11 @@ Metadata:
         default: Web Subnet for AZ 1
       WebSubnet2:
         default: Web Subnet for AZ 2
-      # WPAdminEmail:
-      #   default: Admin Email
-      # WPAdminPassword:
-      #   default: Admin Password
-      # WPAdminUsername:
-      #   default: Admin Username
-      # AppDirectory:
-      #   default: Site Directory
-      # AppDomainName:
-      #   default: Site Domain
-      # WPLocale:
-      #   default: Language Code
-      # WPTitle:
-      #   default: Site Title
 
 Parameters:
-
-  # DatabaseClusterEndpointAddress:
-  #   Description: The RDS cluster endpoint address.
-  #   Type: String
-  # DatabaseMasterUsername:
-  #   AllowedPattern: ^([a-zA-Z0-9]*)$
-  #   Description: The Amazon RDS master username.
-  #   ConstraintDescription: Must contain only alphanumeric characters and be at least 8 characters.
-  #   MaxLength: 16
-  #   MinLength: 1
-  #   Type: String
-  # DatabaseMasterPassword:
-  #   AllowedPattern: ^([a-z0-9A-Z`~!#$%^&*()_+,\\-])*$
-  #   ConstraintDescription: Must be letters (upper or lower), numbers, and these special characters '_'`~!#$%^&*()_+,-
-  #   Description: The Amazon RDS master password.
-  #   MaxLength: 41
-  #   MinLength: 8
-  #   NoEcho: true
-  #   Type: String
-  # DatabaseName:
-  #   AllowedPattern: ^([a-zA-Z0-9]*)$
-  #   Description: The Amazon RDS master database name.
-  #   Type: String
+  AMI:
+    Description: Aws Image Id
+    Type: AWS::EC2::Image::Id
   ElasticFileSystem:
     AllowedPattern: ^(fs-)([a-z0-9]{8})$
     Description: The Amazon EFS file system id.
@@ -185,36 +129,6 @@ Parameters:
   WebSubnet2:
     Description: Select an existing web subnet for AZ 2.
     Type: AWS::EC2::Subnet::Id
-  # WPAdminEmail:
-  #   AllowedPattern: ^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$
-  #   Description: The WordPress admin email address.
-  #   Type: String
-  # WPAdminPassword:
-  #   AllowedPattern: ^([a-zA-Z0-9`~!#$%^&*()_+,\\-])*$
-  #   ConstraintDescription: Must be letters (upper or lower), numbers, and these special characters '_'`~!#$%^&*()_+,-   
-  #   Description: The WordPress admin password.
-  #   Type: String
-  #   NoEcho: true
-  # WPAdminUsername:
-  #   AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9_-])*([a-zA-Z0-9])$
-  #   Description: The WordPress admin username.
-  #   Type: String
-  # AppDirectory:
-  #   AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9_-])*([a-zA-Z0-9])$
-  #   Description: The site directory.
-  #   Type: String
-  # AppDomainName:
-  #   AllowedPattern: ^$|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$
-  #   Description: '[ Optional ] The main domain name of the site (e.g. example.com). Leave empty to use the ALB DNS name for the site.'
-  #   Type: String
-  # WPLocale:
-  #   Description: The main language of the WordPress site, as per https://codex.WordPress.org/Installing_WordPress_in_Your_Language. The default is 'en_GB'.
-  #   Type: String
-  #   Default: en_GB
-  # WPTitle:
-  #   AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9 _-]*)([a-zA-Z0-9])$
-  #   Description: The WordPress website title.
-  #   Type: String
 
 Conditions:
 
@@ -231,40 +145,6 @@ Conditions:
       !Equals [ !Ref 'AWS::Region', ap-northeast-1 ],
       !Equals [ !Ref 'AWS::Region', ap-southeast-2 ]
     ]
-  # NoAppDomainName:
-  #   !Equals [ '', !Ref AppDomainName ]
-
-Mappings:
-
-# Private image should be used with php -base currently in ap-southeast-2
-
-  RegionMap:
-    ap-northeast-1:
-      AMI: ami-aae114cc
-    ap-northeast-2:
-      AMI: ami-d24e97bc
-    ap-southeast-1:
-      AMI: ami-e8da418b
-    ap-southeast-2:
-      AMI: ami-625ca500
-    ca-central-1:
-      AMI: ami-b3cf71d7
-    eu-central-1:
-      AMI: ami-9c1db3f3
-    eu-west-1:
-      AMI: ami-016f9e78
-    eu-west-2:
-      AMI: ami-fde6f799
-    sa-east-1:
-      AMI: ami-7ad8ae16
-    us-east-1:
-      AMI: ami-b391b9c8
-    us-east-2:
-      AMI: ami-a7aa8ac2
-    us-west-1:
-      AMI: ami-8edbf0ee
-    us-west-2:
-      AMI: ami-9d04e4e5
 
 Resources:
 
@@ -332,7 +212,7 @@ Resources:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       IamInstanceProfile: !Ref WebInstanceProfile
-      ImageId: !FindInMap [ RegionMap, !Ref 'AWS::Region', AMI ]
+      ImageId: !Ref AMI
       InstanceMonitoring: true
       InstanceType: !Ref WebInstanceType
       KeyName: !Ref KeyName
@@ -343,14 +223,12 @@ Resources:
           !Sub |
             #!/bin/bash -xe
             adduser ubuntu www-data
-            rm /etc/dd-agent/datadog.conf
-            apt-get update -y
-            apt-get upgrade -y
             mkdir -p /var/www/default
             chmod -R 775 /var/www/default
             mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/default/
             a2dissite 000-default
             systemctl restart apache2
+            DD_API_KEY=0c4fcc9abe6c19d8cd74ccbaa271424c bash -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)"
 
 
 
