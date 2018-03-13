@@ -223,12 +223,12 @@ Resources:
           !Sub |
             #!/bin/bash -xe
             adduser ubuntu www-data
-            mkdir -p /var/www/default
-            chmod -R 775 /var/www/default
-            mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/default/
+            mkdir -p /var/www/default/pub/media
+            chmod -R 775 /var/www/default/pub/media
+            mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/default/pub/media
             a2dissite 000-default
             systemctl restart apache2
-            DD_API_KEY=0c4fcc9abe6c19d8cd74ccbaa271424c bash -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)"
+            # DD_API_KEY=0c4fcc9abe6c19d8cd74ccbaa271424c bash -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)"
 
 
 
