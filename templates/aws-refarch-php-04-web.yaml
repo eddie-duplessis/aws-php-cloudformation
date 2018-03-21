@@ -229,8 +229,8 @@ Resources:
             mkdir -p /var/www/default/pub/media
             chmod -R 775 /var/www/default/pub/media
             mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/default/pub/media
-            sed -i 's/magentostaging.dxmsze.cfg.apse2.cache.amazonaws.com/magento.jv9k3o.cfg.apse2.cache.amazonaws.com/g' /etc/php/7.0/fpm/php.ini /etc/php/7.0/cli/php.ini
-            cp /var/www/default/app/etc/prod_env.php /var/www/default/app/etc/env.php
+            #sed -i 's/magentostaging.dxmsze.cfg.apse2.cache.amazonaws.com/magento.jv9k3o.cfg.apse2.cache.amazonaws.com/g' /etc/php/7.0/fpm/php.ini /etc/php/7.0/cli/php.ini
+            #cp /var/www/default/app/etc/prod_env.php /var/www/default/app/etc/env.php
             a2dissite 000-default
             systemctl restart apache2
             DD_API_KEY=0c4fcc9abe6c19d8cd74ccbaa271424c bash -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)"
