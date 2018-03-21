@@ -234,6 +234,7 @@ Resources:
             a2dissite 000-default
             systemctl restart apache2
             DD_API_KEY=0c4fcc9abe6c19d8cd74ccbaa271424c bash -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)"
+	    /usr/bin/php /var/www/default/bin/magento cache:clean
 
 # Outputs:
 
