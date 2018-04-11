@@ -18,7 +18,6 @@ Metadata:
         - WebSecurityGroup
         - WebSubnet0
         - WebSubnet1
-        - WebSubnet2
         - PublicAlbTargetGroupArn
         - PublicAlbHostname
         - SslCertificate
@@ -54,8 +53,6 @@ Metadata:
         default: Web Subnet for AZ 0
       WebSubnet1:
         default: Web Subnet for AZ 1
-      WebSubnet2:
-        default: Web Subnet for AZ 2
 
 Parameters:
   AMI:
@@ -129,9 +126,6 @@ Parameters:
   WebSubnet1:
     Description: Select an existing web subnet for AZ 1.
     Type: AWS::EC2::Subnet::Id
-  WebSubnet2:
-    Description: Select an existing web subnet for AZ 2.
-    Type: AWS::EC2::Subnet::Id
 
 Conditions:
 
@@ -189,8 +183,8 @@ Resources:
   WebAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      Cooldown: 60
-      HealthCheckGracePeriod: 120
+      Cooldown: 300
+      HealthCheckGracePeriod: 300
       HealthCheckType: EC2
       LaunchConfigurationName: !Ref WebLaunchConfiguration
       MaxSize: !Ref WebAsgMax
@@ -202,15 +196,59 @@ Resources:
       TargetGroupARNs:
         - !Ref PublicAlbTargetGroupArn
       VPCZoneIdentifier:
-        !If [
-          MoreThan2AZ,
-          [ !Ref WebSubnet0, !Ref WebSubnet1, !Ref WebSubnet2 ],
           [ !Ref WebSubnet0, !Ref WebSubnet1 ]
-        ]
     CreationPolicy:
       ResourceSignal:
         Count: !Ref WebAsgMin
         Timeout: PT5M
+      MetricsCollection:
+        - Granularity: 1Minute
+  ScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      AutoScalingGroupName:
+        Ref: WebAutoScalingGroup
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50
+        DisableScaleIn: false
+      EstimatedInstanceWarmup: 300
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: '1'
+      Statistic: Average
+      Threshold: '50'
+      AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
+      Period: '300'
+      AlarmActions:
+      - Ref: ScalingPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: WebAutoScalingGroup 
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: CPUUtilization
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: '1'
+      Statistic: Average
+      Threshold: '49'
+      AlarmDescription: Alarm if CPU low or metric disappears indicating instance is down
+      Period: '300'
+      AlarmActions:
+      - Ref: ScalingPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: WebAutoScalingGroup
+      ComparisonOperator: LessThanThreshold
+      MetricName: CPUUtilization
   WebLaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
@@ -219,22 +257,20 @@ Resources:
       InstanceMonitoring: true
       InstanceType: !Ref WebInstanceType
       KeyName: !Ref KeyName
+      BlockDeviceMappings: 
+        - DeviceName: "/dev/sda1"
+          Ebs: 
+            VolumeSize: "60"
+            DeleteOnTermination: "true"
       SecurityGroups:
       - !Ref WebSecurityGroup
       UserData:
         "Fn::Base64":
           !Sub |
             #!/bin/bash -xe
-            adduser ubuntu www-data
             mkdir -p /var/www/default/pub/media
             chmod -R 775 /var/www/default/pub/media
             mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/default/pub/media
-            #sed -i 's/magentostaging.dxmsze.cfg.apse2.cache.amazonaws.com/magento.jv9k3o.cfg.apse2.cache.amazonaws.com/g' /etc/php/7.0/fpm/php.ini /etc/php/7.0/cli/php.ini
-            #cp /var/www/default/app/etc/prod_env.php /var/www/default/app/etc/env.php
-            a2dissite 000-default
-            systemctl restart apache2
-            DD_API_KEY=0c4fcc9abe6c19d8cd74ccbaa271424c bash -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)"
-            /usr/bin/php /var/www/default/bin/magento cache:clean
 
 # Outputs:
 

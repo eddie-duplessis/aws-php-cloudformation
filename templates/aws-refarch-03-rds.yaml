@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Reference Architecture to host PHP Site on AWS - Creates RDS Aurora database cluster
+Description: Reference Architecture to host PHP Site on AWS - Creates RDS MariaDB database
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -50,6 +50,20 @@ Parameters:
     Default: db.t2.medium
     Description: The Amazon RDS database instance class.
     Type: String
+  MultiAZ:
+    AllowedValues:
+      - True
+      - False
+    Default: True
+    Description: Multi AZ deployment.
+    Type: String
+  StorageSize:
+    AllowedPattern: ^([0-9]*)$
+    Description: DB Storage Size
+    ConstraintDescription: Most only contain numbers.
+    MaxLength: 3
+    MinLength: 1
+    Type: String
   DatabaseMasterUsername:
     AllowedPattern: ^([a-zA-Z0-9]*)$
     Description: The Amazon RDS master username.
@@ -66,7 +80,6 @@ Parameters:
     NoEcho: true
     Type: String
   DatabaseName:
-    AllowedPattern: ^([a-zA-Z0-9]*)$
     Description: The Amazon RDS master database name.
     Type: String
   DatabaseSecurityGroup:
@@ -98,47 +111,28 @@ Conditions:
 
 Resources:
 
-  DatabaseCluster:
-    Type: AWS::RDS::DBCluster
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
     Properties:
       BackupRetentionPeriod: 30
-      DatabaseName: !Ref DatabaseName
+      DBInstanceIdentifier: !Ref DatabaseName
       DBSubnetGroupName: !Ref DataSubnetGroup
-      Engine: aurora
       MasterUsername: !Ref DatabaseMasterUsername
       MasterUserPassword: !Ref DatabaseMasterPassword
       Port: 3306
       Tags:
         - Key: Name
           Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
-      VpcSecurityGroupIds:
+      VPCSecurityGroups:
       - !Ref DatabaseSecurityGroup
-  DatabaseInstance0:
-    Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    Properties:
       AllowMajorVersionUpgrade: false
+      AllocatedStorage: !Ref StorageSize
       AutoMinorVersionUpgrade: true
-      DBClusterIdentifier: !Ref DatabaseCluster
       DBInstanceClass: !Ref DatabaseInstanceType
       DBSubnetGroupName: !Ref DataSubnetGroup
-      Engine: aurora
-      Tags:
-        - Key: Name
-          Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
-  DatabaseInstance1:
-    Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    Properties:
-      AllowMajorVersionUpgrade: false
-      AutoMinorVersionUpgrade: true
-      DBClusterIdentifier: !Ref DatabaseCluster
-      DBInstanceClass: !Ref DatabaseInstanceType
-      DBSubnetGroupName: !Ref DataSubnetGroup
-      Engine: aurora
-      Tags:
-        - Key: Name
-          Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
+      Engine: mariadb
+      MultiAZ: !Ref MultiAZ
+
   DataSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
@@ -154,16 +148,12 @@ Resources:
           Value: !Join [ '', [ 'Application / ', !Ref 'AWS::StackName' ] ]
 
 Outputs:
-  DatabaseCluster:
-    Value: !Ref DatabaseCluster
   DatabaseName:
     Value: !Ref DatabaseName
-  DatabaseInstance0:
-    Value: !Ref DatabaseInstance0
-  DatabaseInstance1:
-    Value: !Ref DatabaseInstance1
+  DatabaseInstance:
+    Value: !Ref DatabaseInstance
   DataSubnetGroup:
     Value: !Ref DataSubnetGroup
   DatabaseClusterEndpointAddress:
-    Value: !GetAtt DatabaseCluster.Endpoint.Address
+    Value: !GetAtt DatabaseInstance.Endpoint.Address
 

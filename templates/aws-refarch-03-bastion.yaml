@@ -68,7 +68,7 @@ Mappings:
     ap-southeast-1:
       AMI: ami-e8da418b
     ap-southeast-2:
-      AMI: ami-49b3aa2a
+      AMI: ami-d38a4ab1
     ca-central-1:
       AMI: ami-b3cf71d7
     eu-central-1:

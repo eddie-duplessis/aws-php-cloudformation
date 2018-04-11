@@ -21,25 +21,25 @@ Mappings:
 
   SubnetConfig:
     Vpc:
-      CIDR: 10.0.0.0/16
+      CIDR: 172.21.0.0/16
     WebSubnet0:
-      CIDR: 10.0.0.0/22
+      CIDR: 172.21.0.0/24
     WebSubnet1:
-      CIDR: 10.0.4.0/22
+      CIDR: 172.21.1.0/24
     WebSubnet2:
-      CIDR: 10.0.8.0/22
+      CIDR: 172.21.2.0/24
     DataSubnet0:
-      CIDR: 10.0.12.0/22
+      CIDR: 172.21.3.0/24
     DataSubnet1:
-      CIDR: 10.0.16.0/22
+      CIDR: 172.21.4.0/24
     DataSubnet2:
-      CIDR: 10.0.20.0/22
+      CIDR: 172.21.5.0/24
     PublicSubnet0:
-      CIDR: 10.0.250.0/23
+      CIDR: 172.21.6.0/24
     PublicSubnet1:
-      CIDR: 10.0.252.0/23
+      CIDR: 172.21.7.0/24
     PublicSubnet2:
-      CIDR: 10.0.254.0/23
+      CIDR: 172.21.8.0/24
 
 Resources:
 
